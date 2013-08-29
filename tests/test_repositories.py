@@ -1,5 +1,6 @@
 from flask import json
 import httplib as http
+from unittest import skip
 
 from tests import GWATestCase
 
@@ -29,6 +30,10 @@ class RepositoryTests(GWATestCase):
 
         # { 'url': '...' }
         self.assertIsNotNone( json.loads(resp.data).get('url') )
+
+    @skip('')
+    def test_repo_list(self):
+        pass
 
     def test_created_repository_is_valid(self):
         """ Create a repository; the URL (GET) should return HTTP 200 """

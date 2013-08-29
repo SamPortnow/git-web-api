@@ -54,3 +54,35 @@ class FileTests(GWATestCase):
             repo_url + 'foo.txt',
             resp.location,
         )
+
+    def test_get_file_success(self):
+        repo_url = self._make_repo()
+
+        resp = self.app.put(
+            repo_url + 'foo.txt',
+            data={
+                'file': self._fake_file()
+            },
+            follow_redirects=True,
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.OK,
+        )
+
+    def test_get_file_content(self):
+        repo_url = self._make_repo()
+
+        resp = self.app.put(
+            repo_url + 'foo.txt',
+            data={
+                'file': self._fake_file()
+            },
+            follow_redirects=True,
+        )
+
+        self.assertIn(
+            resp.data,
+            'my file contents',
+        )

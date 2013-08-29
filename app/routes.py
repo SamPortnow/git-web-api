@@ -3,7 +3,7 @@ import os
 from git_subprocess import Repository
 from . import utils
 
-from flask import abort, Blueprint, current_app, jsonify, redirect, request, url_for
+from flask import abort, Blueprint, current_app, jsonify, redirect, request, send_from_directory, url_for
 from werkzeug import secure_filename
 
 web = Blueprint('git_storage', __name__)
@@ -89,11 +89,22 @@ def update(repo_id):
 def get_file(repo_id, path):
     """ Simple web request. Return the static file.
     """
+
     repo = get_repo(repo_id)
 
-    repo.get_file(path)
+    path = path.split('/')
+    if len(path) == 1:
+        path = path[0]
+        dirname = ''
+    else:
+        path = path[-1]
+        dirname = '/'.join(path[:-1])
 
-    return repo.get_file(path)
+
+    return send_from_directory(
+        directory=os.path.join(repo.path, dirname),
+        filename=path,
+    )
 
 # @web.route('/<repo_id>/', methods=['PUT', ])
 @web.route('/<repo_id>/<path:path>', methods=['PUT', ])
