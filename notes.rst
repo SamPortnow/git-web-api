@@ -2,11 +2,11 @@ Repos
 =====
 
 Create
-* PUT to /
-    * on success
-        * url to the /<r>/
-    * on failure
-        * 400-series status code
+   * PUT to /
+       * on success
+           * url to the /<r>/
+       * on failure
+           * 400-series status code
 
 Read (repo-level meta information)
     * on success
