@@ -106,21 +106,9 @@ def add_file(repo_id, path=None):
     if not f or len(request.files) != 1:
         abort(400)
 
-
-    file_path, file_name = os.path.split(path)
-    file_name = secure_filename(file_name)
-
     repo = get_repo(repo_id)
 
-    f.save(
-        os.path.join(repo.path, file_path, file_name)
-    )
-
-    repo.add_file(
-        file_path=os.path.join(file_path, file_name),
-        commit_author='Test User <test@user.com>',
-        commit_message='Test commit message',
-    )
+    add_and_commit_file(repo, path, f)
 
     return redirect(url_for('.get_file', repo_id=repo_id, path=path))
 
@@ -132,10 +120,26 @@ def update_file(repo_id, path=None):
 def delete_file(repo_id, path):
     return ''
 
+
 def get_repo(id):
     return Repository(
         os.path.join(
             current_app.config.get('git_root'),
             id
         )
+    )
+
+
+def add_and_commit_file(repo, path, f):
+    file_path, file_name = os.path.split(path)
+    file_name = secure_filename(file_name)
+
+    f.save(
+        os.path.join(repo.path, file_path, file_name)
+    )
+
+    repo.add_file(
+        file_path=os.path.join(file_path, file_name),
+        commit_author='Test User <test@user.com>',
+        commit_message='Test commit message',
     )
