@@ -3,7 +3,8 @@ import os
 from git_subprocess import Repository
 from . import utils
 
-from flask import abort, Blueprint, current_app, jsonify, url_for
+from flask import abort, Blueprint, current_app, jsonify, redirect, request, url_for
+from werkzeug import secure_filename
 
 web = Blueprint('git_storage', __name__)
 
@@ -70,7 +71,9 @@ def get_repo(repo_id):
     if not repo.is_valid_repo:
         abort(404)
 
-    return ''
+    return jsonify({
+
+    })
 
 @web.route('/<repo_id>/', methods=['POST', ])
 def update(repo_id):
@@ -82,25 +85,57 @@ def update(repo_id):
 
 # File level
 
-@web.route('/<repo_id>/<path:path>/', methods=['GET', ])
+@web.route('/<repo_id>/<path:path>', methods=['GET', ])
 def get_file(repo_id, path):
     """ Simple web request. Return the static file.
     """
-    auth = build_auth_context(data) # right now, only check for API key.
-    return ''
+    repo = get_repo(repo_id)
+
+    repo.get_file(path)
+
+    return repo.get_file(path)
 
 # @web.route('/<repo_id>/', methods=['PUT', ])
-@web.route('/<repo_id>/<path:path>/', methods=['PUT', ])
+@web.route('/<repo_id>/<path:path>', methods=['PUT', ])
 def add_file(repo_id, path=None):
     """ Adds a file to the repo at this path and commit."""
     # TODO: Consider implications of allowing a PUT to the repo level, with
     #       a dict containing the path.
-    return ''
+    f = request.files.get('file')
 
-@web.route('/<repo_id>/<path:path>/', methods=['POST', ])
+    if not f or len(request.files) != 1:
+        abort(400)
+
+
+    file_path, file_name = os.path.split(path)
+    file_name = secure_filename(file_name)
+
+    repo = get_repo(repo_id)
+
+    f.save(
+        os.path.join(repo.path, file_path, file_name)
+    )
+
+    repo.add_file(
+        file_path=os.path.join(file_path, file_name),
+        commit_author='Test User <test@user.com>',
+        commit_message='Test commit message',
+    )
+
+    return redirect(url_for('.get_file', repo_id=repo_id, path=path))
+
+@web.route('/<repo_id>/<path:path>', methods=['POST', ])
 def update_file(repo_id, path=None):
     return ''
 
-@web.route('/<repo_id>/<path:path>/', methods=['DELETE', ])
+@web.route('/<repo_id>/<path:path>', methods=['DELETE', ])
 def delete_file(repo_id, path):
     return ''
+
+def get_repo(id):
+    return Repository(
+        os.path.join(
+            current_app.config.get('git_root'),
+            id
+        )
+    )

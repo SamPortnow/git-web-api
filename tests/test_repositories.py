@@ -24,7 +24,7 @@ class RepositoryTests(GWATestCase):
 
         self.assertEqual(
             resp.status_code,
-            http.OK
+            http.OK,
         )
 
         # { 'url': '...' }
@@ -38,7 +38,7 @@ class RepositoryTests(GWATestCase):
 
         self.assertEqual(
             resp.status_code,
-            http.OK
+            http.OK,
         )
 
     def test_repository_not_found(self):
@@ -47,5 +47,5 @@ class RepositoryTests(GWATestCase):
 
         self.assertEqual(
             resp.status_code,
-            http.NOT_FOUND
+            http.NOT_FOUND,
         )
