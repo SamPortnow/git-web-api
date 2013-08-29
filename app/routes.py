@@ -1,8 +1,19 @@
-from flask import Blueprint
+import os
+
+from git_subprocess import Repository
+from . import utils
+
+from flask import abort, Blueprint, current_app, jsonify, url_for
 
 web = Blueprint('git_storage', __name__)
 
 # Repository level
+
+@web.route('/', methods=['GET', ])
+def get_repos():
+    """ Return a list of repositories
+    """
+    return jsonify({ 'repos': []})
 
 @web.route('/', methods=['PUT', ])
 def add_repo():
@@ -10,7 +21,19 @@ def add_repo():
 
     Return {'url': '/<repo_id>/'}
     """
-    return ''
+    name = utils.new_repo_name()
+
+    repo = Repository(
+        os.path.join(
+            current_app.config.get('git_root'),
+            name
+        )
+    )
+    repo.init()
+
+    return jsonify({
+        'url': url_for('.get_repo', repo_id=name)
+    })
 
 @web.route('/<repo_id>/', methods=['DELETE', ])
 def delete_repo(repo_id):
@@ -23,7 +46,7 @@ def delete_repo(repo_id):
     return ''
 
 @web.route('/<repo_id>/', methods=['GET', ])
-def get_repo_meta(repo_id):
+def get_repo(repo_id):
     """Return information about the repo.
 
     Meta: (immutable through this endpoint)
@@ -37,10 +60,20 @@ def get_repo_meta(repo_id):
         * remote repos with which to sync
         * privacy setting: (public or private)
     """
+    repo = Repository(
+        os.path.join(
+            current_app.config.get('git_root'),
+            repo_id
+        )
+    )
+
+    if not repo.is_valid_repo:
+        abort(404)
+
     return ''
 
 @web.route('/<repo_id>/', methods=['POST', ])
-def update_repo_meta(repo_id):
+def update(repo_id):
     """ Given a dict a settings from ``get_repo_remote()``, update the settings.
 
     Partial dicts are allowed, and permissions must be verified first.

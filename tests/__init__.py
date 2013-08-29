@@ -1,4 +1,7 @@
+import os
+import shutil
 import unittest
+
 from app import auth, create_app
 
 
@@ -35,7 +38,5 @@ class GWATestCase(unittest.TestCase):
         self.app = create_app().test_client()
 
     def tearDown(self):
-        pass
-
-    def test_nothing(self):
-        pass
+        shutil.rmtree('/tmp/test')
+        os.mkdir('/tmp/test')
