@@ -121,7 +121,7 @@ def add_file(repo_id, path=None):
 
     add_and_commit_file(repo, path, f)
 
-    return redirect(url_for('.get_file', repo_id=repo_id, path=path))
+    return jsonify({'url': url_for('.get_file', repo_id=repo_id, path=path)})
 
 @web.route('/<repo_id>/<path:path>', methods=['POST', ])
 def update_file(repo_id, path=None):
@@ -129,6 +129,20 @@ def update_file(repo_id, path=None):
 
 @web.route('/<repo_id>/<path:path>', methods=['DELETE', ])
 def delete_file(repo_id, path):
+    repo = get_repo(repo_id)
+
+    path_parts = path.split('/')
+    fs_path = os.path.join(repo.path, *path_parts)
+
+    if not os.path.isfile(fs_path):
+        abort(404)
+
+    repo.delete_file(
+        file_path=os.path.join(*path_parts),
+        commit_author='Test User <test@user.com>',
+        commit_message='Test commit message',
+    )
+
     return ''
 
 

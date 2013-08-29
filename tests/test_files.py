@@ -37,22 +37,17 @@ class FileTests(GWATestCase):
 
         self.assertEqual(
             resp.status_code,
-            http.FOUND,
+            http.OK,
         )
 
-    def test_add_file_redirect(self):
+    def test_get_file_not_found(self):
         repo_url = self._make_repo()
 
-        resp = self.app.put(
-            repo_url + 'foo.txt',
-            data={
-                'file': self._fake_file()
-            }
-        )
+        resp = self.app.get(repo_url + 'foo.txt')
 
-        self.assertIn(
-            repo_url + 'foo.txt',
-            resp.location,
+        self.assertEqual(
+            resp.status_code,
+            http.NOT_FOUND,
         )
 
     def test_get_file_success(self):
@@ -74,15 +69,45 @@ class FileTests(GWATestCase):
     def test_get_file_content(self):
         repo_url = self._make_repo()
 
-        resp = self.app.put(
-            repo_url + 'foo.txt',
-            data={
-                'file': self._fake_file()
-            },
-            follow_redirects=True,
+        resp = self.app.get(
+            json.loads(
+                self.app.put(
+                    repo_url + 'foo.txt',
+                    data={
+                        'file': self._fake_file()
+                    },
+                ).data
+            ).get('url')
         )
 
         self.assertIn(
             resp.data,
             'my file contents',
+        )
+
+    def test_delete_file_not_found(self):
+        repo_url = self._make_repo()
+
+        resp = self.app.delete(repo_url + 'foo.txt')
+
+        self.assertEqual(
+            resp.status_code,
+            http.NOT_FOUND,
+        )
+
+    def test_delete_file_success(self):
+        repo_url = self._make_repo()
+
+        self.app.put(
+            repo_url + 'foo.txt',
+            data={
+                'file': self._fake_file()
+            }
+        )
+
+        resp = self.app.delete(repo_url + 'foo.txt')
+
+        self.assertEqual(
+            resp.status_code,
+            http.OK
         )
