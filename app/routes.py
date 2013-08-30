@@ -16,7 +16,11 @@ web = Blueprint('git_storage', __name__)
 def get_repos():
     """ Return a list of repositories
     """
-    return jsonify({ 'repos': []})
+    repos = [
+        x for x in os.listdir(current_app.config.get('git_root'))
+        if os.path.isdir(os.path.join(current_app.config.get('git_root'), x))
+    ]
+    return jsonify({ 'repos': repos})
 
 @web.route('/', methods=['PUT', ])
 def add_repo():

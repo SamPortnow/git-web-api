@@ -7,7 +7,7 @@ from tests import GWATestCase
 
 class RepositoryTests(GWATestCase):
 
-    def test_empty_repo_list(self):
+    def test_repo_list_empty(self):
         """ Before the user creates a repository, the list of repositories
         should be empty.
         """
@@ -16,6 +16,16 @@ class RepositoryTests(GWATestCase):
         self.assertEqual(
             json.loads(resp.data),
             { 'repos': [] },
+        )
+
+    def test_repo_list(self):
+        """ After creating a repo, a list of length 1 should be returned """
+        self.app.put('/')
+        resp = self.app.get('/')
+
+        self.assertEqual(
+            len(json.loads(resp.data)['repos']),
+            1
         )
 
     def test_create_repository(self):
@@ -30,10 +40,6 @@ class RepositoryTests(GWATestCase):
 
         # { 'url': '...' }
         self.assertIsNotNone( json.loads(resp.data).get('url') )
-
-    @skip('')
-    def test_repo_list(self):
-        pass
 
     def test_created_repository_is_valid(self):
         """ Create a repository; the URL (GET) should return HTTP 200 """
