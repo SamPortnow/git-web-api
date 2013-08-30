@@ -334,3 +334,87 @@ class AuthTestCase(GWATestCase):
             resp.status_code,
             http.UNAUTHORIZED
         )
+
+    def test_read_file_version_private_authorized(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        file_url = json.loads(
+            self.app.put(
+                repo_url + 'foo.txt?key={}'.format(self.user._id),
+                data={'file': self._fake_file()}
+            ).data
+        )['url']
+
+        sha = json.loads(
+            self.app.get(file_url + '?info=1&key={}'.format(self.user._id)).data
+        )['versions'][0]
+
+        resp = self.app.get(
+            file_url + '?version={}1&key={}'.format(sha, self.user._id)
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.OK
+        )
+
+    def test_read_file_version_private_unauthorized(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        file_url = json.loads(
+            self.app.put(
+                repo_url + 'foo.txt?key={}'.format(self.user._id),
+                data={'file': self._fake_file()}
+            ).data
+        )['url']
+
+        sha = json.loads(
+            self.app.get(file_url + '?info=1&key={}'.format(self.user._id)).data
+        )['versions'][0]
+
+        resp = self.app.get(
+            file_url + '?version={}1&key={}'.format(sha, self.second_user._id)
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
+
+    def test_read_file_version_private_anonymous(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        file_url = json.loads(
+            self.app.put(
+                repo_url + 'foo.txt?key={}'.format(self.user._id),
+                data={'file': self._fake_file()}
+            ).data
+        )['url']
+
+        sha = json.loads(
+            self.app.get(file_url + '?info=1&key={}'.format(self.user._id)).data
+        )['versions'][0]
+
+        resp = self.app.get(
+            file_url + '?version={}1'.format(sha)
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
