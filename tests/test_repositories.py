@@ -20,7 +20,11 @@ class RepositoryTests(GWATestCase):
 
     def test_repo_list(self):
         """ After creating a repo, a list of length 1 should be returned """
-        self.app.put('/')
+        self.app.put(
+            '/',
+            data={'public': 1}
+        )
+
         resp = self.app.get('/')
 
         self.assertEqual(
@@ -44,7 +48,9 @@ class RepositoryTests(GWATestCase):
     def test_created_repository_is_valid(self):
         """ Create a repository; the URL (GET) should return HTTP 200 """
         resp = self.app.get(
-            json.loads(self.app.put('/').data).get('url')
+            json.loads(
+                self.app.put('/').data
+            ).get('url')
         )
 
         self.assertEqual(

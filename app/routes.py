@@ -2,11 +2,13 @@ import httplib as http
 import os
 from StringIO import StringIO
 
-from git_subprocess import Repository
-from . import utils
 
 from flask import abort, Blueprint, current_app, jsonify, redirect, request, send_file, send_from_directory, url_for
-from werkzeug import secure_filename
+from git_subprocess import Repository
+from werkzeug.utils import secure_filename
+
+from . import utils
+from auth import get_auth_context, RepoMeta
 
 web = Blueprint('git_storage', __name__)
 
@@ -16,11 +18,19 @@ web = Blueprint('git_storage', __name__)
 def get_repos():
     """ Return a list of repositories
     """
+    auth_context = get_auth_context()
+
+    #auth_context.can_read_repo
+
     repos = [
         x for x in os.listdir(current_app.config.get('git_root'))
-        if os.path.isdir(os.path.join(current_app.config.get('git_root'), x))
+        if (
+            os.path.isdir(os.path.join(current_app.config.get('git_root'), x))
+            and auth_context.can_read_repo(x)
+        )
     ]
-    return jsonify({ 'repos': repos})
+
+    return jsonify({'repos': repos})
 
 @web.route('/', methods=['PUT', ])
 def add_repo():
@@ -28,7 +38,19 @@ def add_repo():
 
     Return {'url': '/<repo_id>/'}
     """
-    name = utils.new_repo_name()
+
+    auth_context = get_auth_context()
+
+    if not auth_context.can_create_repos:
+        return abort(http.UNAUTHORIZED)
+
+    meta = RepoMeta()
+    meta.is_public = bool(request.form)
+    meta.access_admin.append(auth_context)
+
+    meta.save()
+
+    name = meta._id
 
     repo = Repository(
         os.path.join(

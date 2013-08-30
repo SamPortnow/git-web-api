@@ -3,6 +3,7 @@ import shutil
 import unittest
 
 from app import auth, create_app
+from app.auth import KeyAuthContext
 
 
 class TestAuthContext(auth.AuthContext):
@@ -35,8 +36,18 @@ class TestAuthContext(auth.AuthContext):
 
 class GWATestCase(unittest.TestCase):
     def setUp(self):
-        self.app = create_app().test_client()
+        self.app = create_app(ignore_auth=True).test_client()
+
+        self.admin_user = KeyAuthContext()
+        self.admin_user.can_provision = True
+        self.admin_user.can_create_repos = True
+        self.admin_user.save()
+
+        self.user = KeyAuthContext()
+        self.user.can_create_repos = True
+        self.user.save()
 
     def tearDown(self):
         shutil.rmtree('/tmp/test')
+        os.remove('db_foo.pkl')
         os.mkdir('/tmp/test')

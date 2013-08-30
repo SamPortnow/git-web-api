@@ -61,3 +61,7 @@ Global
 Return dict containing URL on success.
 
 On failure, return { 'message': 'asdfasdfasdfasdfasdf' }
+
+Need a job that verifies that the filesystem state is as expected:
+    * git hasn't choked
+    * No uncommitted staged files (shouldn't be possible within the app)
