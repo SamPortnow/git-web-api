@@ -112,7 +112,7 @@ class FileTests(GWATestCase):
                         'file': self._fake_file()
                     },
                 ).data
-            ).get('url') + '?version=not_a_valid_sha'
+            ).get('url') + '?sha=not_a_valid_sha'
         )
 
         self.assertEqual(
