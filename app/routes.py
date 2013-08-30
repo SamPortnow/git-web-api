@@ -87,6 +87,14 @@ def get_repo(repo_id):
         * remote repos with which to sync
         * privacy setting: (public or private)
     """
+    auth_context = get_auth_context()
+
+    try:
+        if not auth_context.can_read_repo(repo_id):
+            return abort(http.UNAUTHORIZED)
+    except KeyError:
+        pass
+
     repo = Repository(
         os.path.join(
             current_app.config.get('git_root'),

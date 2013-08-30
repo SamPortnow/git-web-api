@@ -70,9 +70,13 @@ class KeyAuthContext(StoredObject, AuthContext):
 
     def can_read_repo(self, repo_id):
 
-        for ref in self.admin_repos['repometa']:
-            if repo_id in self.admin_repos['repometa'][ref]:
-                return True
+        for field in ['admin_repos', 'read_repos', 'write_repos']:
+            try:
+                for ref in getattr(self, field).get('repometa', []):
+                    if repo_id in getattr(self, field)['repometa'][ref]:
+                        return True
+            except AttributeError:
+                pass
 
         return RepoMeta.load(repo_id).is_public
 

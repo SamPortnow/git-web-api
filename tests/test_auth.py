@@ -4,6 +4,7 @@ from flask import json
 
 from tests import GWATestCase
 from app import create_app
+from app.auth import KeyAuthContext
 
 
 class AuthTestCase(GWATestCase):
@@ -11,7 +12,18 @@ class AuthTestCase(GWATestCase):
         super(AuthTestCase, self).setUp()
         self.app = create_app().test_client()
 
-    def test_create_repo_fail(self):
+        self.read_user = KeyAuthContext()
+        self.read_user.can_create_repos = False
+        self.read_user.save()
+
+        self.second_user = KeyAuthContext()
+        self.second_user.can_create_repos = True
+        self.second_user.save()
+
+    # Repo Creation
+    ###############
+
+    def test_create_repo_fail_anonymous(self):
         resp = self.app.put('/')
 
         self.assertEqual(
@@ -19,7 +31,15 @@ class AuthTestCase(GWATestCase):
             http.UNAUTHORIZED
         )
 
-    def test_create_repo_succeed(self):
+    def test_create_repo_fail_unauthorized(self):
+        resp = self.app.put('/?key=' + self.read_user._id)
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
+
+    def test_create_repo_authorized(self):
         resp = self.app.put('/?key=' + self.user._id)
 
         self.assertEqual(
@@ -27,7 +47,10 @@ class AuthTestCase(GWATestCase):
             http.OK
         )
 
-    def test_list_repo_without_access(self):
+    # Repo Listing
+    ##############
+
+    def test_list_private_repo_anonymous(self):
         json.loads(
             self.app.put('/?key=' + self.user._id).data
         ).get('url')
@@ -37,7 +60,7 @@ class AuthTestCase(GWATestCase):
             []
         )
 
-    def test_list_repo_with_access(self):
+    def test_list_private_repo_authorized(self):
         json.loads(
             self.app.put('/?key=' + self.user._id).data
         ).get('url')
@@ -48,7 +71,18 @@ class AuthTestCase(GWATestCase):
 
         self.assertEqual(len(repos), 1)
 
-    def test_list_repo_public(self):
+    def test_list_private_repo_unauthorized(self):
+        json.loads(
+            self.app.put('/?key=' + self.user._id).data
+        ).get('url')
+
+        repos = json.loads(
+            self.app.get('/?key=' + self.second_user._id).data
+        ).get('repos')
+
+        self.assertEqual(len(repos), 0)
+
+    def test_list_public_repo(self):
 
         self.app.put(
             '/?key=' + self.user._id,
@@ -60,3 +94,53 @@ class AuthTestCase(GWATestCase):
         ).get('repos')
 
         self.assertEqual(len(repos), 1)
+
+    # Repo Read
+    ###########
+
+    def test_read_repo_private_authorized(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        resp = self.app.get(
+            repo_url + '?key={}'.format(self.user._id)
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.OK
+        )
+
+    def test_read_repo_private_unauthorized(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        resp = self.app.get(repo_url + '?key={}'.format(self.second_user._id))
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
+
+    def test_read_repo_private_anonymous(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        resp = self.app.get(repo_url)
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
