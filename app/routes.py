@@ -1,6 +1,7 @@
 import httplib as http
 import os
 from StringIO import StringIO
+from urlparse import urlparse, parse_qs
 
 
 from flask import abort, Blueprint, current_app, jsonify, redirect, request, send_file, send_from_directory, url_for
@@ -110,7 +111,7 @@ def get_repo(repo_id):
     })
 
 @web.route('/<repo_id>/', methods=['POST', ])
-def update(repo_id):
+def update_repo(repo_id):
     """ Given a dict a settings from ``get_repo_remote()``, update the settings.
 
     Partial dicts are allowed, and permissions must be verified first.
@@ -123,6 +124,10 @@ def update(repo_id):
 def get_file(repo_id, path):
     """ Simple web request. Return the static file.
     """
+    auth_context = get_auth_context()
+
+    if not auth_context.can_read_repo(repo_id):
+        return abort(http.UNAUTHORIZED)
 
     repo = get_repo(repo_id)
 
@@ -133,12 +138,11 @@ def get_file(repo_id, path):
 
     if request.args.get('sha'):
         sha = request.args.get('sha')
-        file = repo.get_file(path)
-        if sha not in [x.sha for x in file.versions]:
+        f = repo.get_file(path)
+        if sha not in [x.sha for x in f.versions]:
             abort(http.NOT_FOUND)
         else:
-            return send_file(StringIO(file.get_version_by_sha(sha).content))
-
+            return send_file(StringIO(f.get_version_by_sha(sha).content))
 
     path = path.split('/')
     if len(path) == 1:
@@ -165,6 +169,7 @@ def add_file(repo_id, path=None):
         abort(400)
 
     repo = get_repo(repo_id)
+    path = urlparse(path).path
 
     add_and_commit_file(repo, path, f)
 

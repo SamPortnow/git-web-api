@@ -1,4 +1,5 @@
 import httplib as http
+from StringIO import StringIO
 
 from flask import json
 
@@ -8,6 +9,9 @@ from app.auth import KeyAuthContext
 
 
 class AuthTestCase(GWATestCase):
+    def _fake_file(self, content=None, filename=None):
+        return StringIO(content or 'my file contents'), 'test.txt'
+
     def setUp(self):
         super(AuthTestCase, self).setUp()
         self.app = create_app().test_client()
@@ -139,6 +143,81 @@ class AuthTestCase(GWATestCase):
         ).get('url')
 
         resp = self.app.get(repo_url)
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
+
+    # File Read
+    ###########
+
+    def test_read_file_private_authorized(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        self.app.put(repo_url + 'foo.txt?key={}'.format(self.user._id)).data
+
+        file_url = json.loads(
+            self.app.put(
+                repo_url + 'foo.txt?key={}'.format(self.user._id),
+                data={'file': self._fake_file()}
+            ).data
+        )['url']
+
+        resp = self.app.get(file_url + '?key={}'.format(self.user._id))
+
+        self.assertEqual(
+            resp.status_code,
+            http.OK
+        )
+
+    def test_read_file_private_unauthorized(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        self.app.put(repo_url + 'foo.txt?key={}'.format(self.user._id)).data
+
+        file_url = json.loads(
+            self.app.put(
+                repo_url + 'foo.txt?key={}'.format(self.user._id),
+                data={'file': self._fake_file()}
+            ).data
+        )['url']
+
+        resp = self.app.get(file_url + '?key={}'.format(self.second_user._id))
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
+
+    def test_read_file_private_anonymous(self):
+
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        self.app.put(repo_url + 'foo.txt?key={}'.format(self.user._id)).data
+
+        file_url = json.loads(
+            self.app.put(
+                repo_url + 'foo.txt?key={}'.format(self.user._id),
+                data={'file': self._fake_file()}
+            ).data
+        )['url']
+
+        resp = self.app.get(file_url)
 
         self.assertEqual(
             resp.status_code,
