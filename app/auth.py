@@ -37,7 +37,7 @@ class AuthContext(object):
     def can_read_repo(self, repo_id):
         raise NotImplementedError
 
-    def can_modify_repo(self, repo_id):
+    def can_write_repo(self, repo_id):
         raise NotImplementedError
 
     def is_repo_admin(self, repo_id):
@@ -54,7 +54,7 @@ class PublicAuthContext(AuthContext):
     def can_read_repo(self, repo_id):
         return RepoMeta.load(repo_id).is_public
 
-    def can_modify_repo(self, repo_id):
+    def can_write_repo(self, repo_id):
         return False
 
     def is_repo_admin(self, repo_id):
@@ -79,6 +79,18 @@ class KeyAuthContext(StoredObject, AuthContext):
                 pass
 
         return RepoMeta.load(repo_id).is_public
+
+    def can_write_repo(self, repo_id):
+
+        for field in ['admin_repos', 'write_repos']:
+            try:
+                for ref in getattr(self, field).get('repometa', []):
+                    if repo_id in getattr(self, field)['repometa'][ref]:
+                        return True
+            except AttributeError:
+                pass
+
+        return False
 
     def __init__(self, *args, **kwargs):
         super(KeyAuthContext, self).__init__(*args, **kwargs)

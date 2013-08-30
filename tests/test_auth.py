@@ -152,6 +152,57 @@ class AuthTestCase(GWATestCase):
     # File Read
     ###########
 
+    def test_create_file_private_authorized(self):
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        resp = self.app.put(
+            repo_url + 'foo.txt?key={}'.format(self.user._id),
+            data={'file': self._fake_file()}
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.OK
+        )
+
+    def test_create_file_private_unauthorized(self):
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        resp = self.app.put(
+            repo_url + 'foo.txt?key={}'.format(self.second_user._id),
+            data={'file': self._fake_file()}
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
+
+    def test_create_file_private_anonymous(self):
+        repo_url = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        ).get('url')
+
+        resp = self.app.put(
+            repo_url + 'foo.txt',
+            data={'file': self._fake_file()}
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.UNAUTHORIZED
+        )
+
     def test_read_file_private_authorized(self):
 
         repo_url = json.loads(
@@ -159,8 +210,6 @@ class AuthTestCase(GWATestCase):
                 '/?key=' + self.user._id
             ).data
         ).get('url')
-
-        self.app.put(repo_url + 'foo.txt?key={}'.format(self.user._id)).data
 
         file_url = json.loads(
             self.app.put(
@@ -183,8 +232,6 @@ class AuthTestCase(GWATestCase):
                 '/?key=' + self.user._id
             ).data
         ).get('url')
-
-        self.app.put(repo_url + 'foo.txt?key={}'.format(self.user._id)).data
 
         file_url = json.loads(
             self.app.put(

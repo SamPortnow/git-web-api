@@ -16,6 +16,9 @@ def create_app(**kwargs):
         app.no_auth_user = KeyAuthContext()
         app.no_auth_user.can_provision = True
         app.no_auth_user.can_create_repos = True
+        app.no_auth_user.can_read_repo = lambda x: True
+        app.no_auth_user.can_modify_repo = lambda x: True
+        app.no_auth_user.is_repo_admin = lambda x: True
         app.no_auth_user.save()
 
     # routes

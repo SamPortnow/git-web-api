@@ -163,6 +163,11 @@ def add_file(repo_id, path=None):
     """ Adds a file to the repo at this path and commit."""
     # TODO: Consider implications of allowing a PUT to the repo level, with
     #       a dict containing the path.
+    auth_context = get_auth_context()
+
+    if not auth_context.can_write_repo(repo_id):
+        return abort(http.UNAUTHORIZED)
+
     f = request.files.get('file')
 
     if not f or len(request.files) != 1:
