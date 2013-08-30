@@ -1,9 +1,11 @@
+import httplib as http
 import os
+from StringIO import StringIO
 
 from git_subprocess import Repository
 from . import utils
 
-from flask import abort, Blueprint, current_app, jsonify, redirect, request, send_from_directory, url_for
+from flask import abort, Blueprint, current_app, jsonify, redirect, request, send_file, send_from_directory, url_for
 from werkzeug import secure_filename
 
 web = Blueprint('git_storage', __name__)
@@ -92,6 +94,20 @@ def get_file(repo_id, path):
 
     repo = get_repo(repo_id)
 
+    if request.args.get('info') is not None:
+        return jsonify({
+            'versions': [v.sha for v in repo.get_file(path).versions]
+        })
+
+    if request.args.get('sha'):
+        sha = request.args.get('sha')
+        file = repo.get_file(path)
+        if sha not in [x.sha for x in file.versions]:
+            abort(http.NOT_FOUND)
+        else:
+            return send_file(StringIO(file.get_version_by_sha(sha).content))
+
+
     path = path.split('/')
     if len(path) == 1:
         path = path[0]
@@ -99,7 +115,6 @@ def get_file(repo_id, path):
     else:
         path = path[-1]
         dirname = '/'.join(path[:-1])
-
 
     return send_from_directory(
         directory=os.path.join(repo.path, dirname),
