@@ -2,5 +2,5 @@
 env/*
 *.py[cod]
 
-git_subprocess/*
 git_subprocess
+modularodm
