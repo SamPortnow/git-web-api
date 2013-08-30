@@ -47,3 +47,16 @@ class AuthTestCase(GWATestCase):
         ).get('repos')
 
         self.assertEqual(len(repos), 1)
+
+    def test_list_repo_public(self):
+
+        self.app.put(
+            '/?key=' + self.user._id,
+            data={'is_public': 1}
+        )
+
+        repos = json.loads(
+            self.app.get('/').data
+        ).get('repos')
+
+        self.assertEqual(len(repos), 1)

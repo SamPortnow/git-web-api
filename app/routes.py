@@ -20,8 +20,6 @@ def get_repos():
     """
     auth_context = get_auth_context()
 
-    #auth_context.can_read_repo
-
     repos = [
         x for x in os.listdir(current_app.config.get('git_root'))
         if (
@@ -45,7 +43,7 @@ def add_repo():
         return abort(http.UNAUTHORIZED)
 
     meta = RepoMeta()
-    meta.is_public = bool(request.form)
+    meta.is_public = bool(request.form.get('is_public'))
     meta.access_admin.append(auth_context)
 
     meta.save()
