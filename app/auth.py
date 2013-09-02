@@ -67,6 +67,8 @@ class KeyAuthContext(StoredObject, AuthContext):
     _id = fields.StringField(primary=True)
     can_provision = fields.BooleanField(default=False)
     can_create_repos = fields.BooleanField(default=False)
+    full_name = fields.StringField()
+    email = fields.StringField()
 
     def can_read_repo(self, repo_id):
 
@@ -133,6 +135,8 @@ def get_auth_context():
 
     try:
         context = KeyAuthContext.load(request.args.get('key'))
+        context.full_name = request.form.get('full_name')
+        context.email = request.form.get('email')
         return context
     except KeyError:
         return PublicAuthContext()

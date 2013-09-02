@@ -174,7 +174,10 @@ def add_file(repo_id, path=None):
     repo = get_repo(repo_id)
     path = urlparse(path).path
 
-    add_and_commit_file(repo, path, f)
+    add_and_commit_file(repo, path, f,
+                        author_name=auth_context.full_name,
+                        author_email=auth_context.email,
+    )
 
     return jsonify({'url': url_for('.get_file', repo_id=repo_id, path=path)})
 
@@ -210,9 +213,14 @@ def get_repo(id):
     )
 
 
-def add_and_commit_file(repo, path, f):
+def add_and_commit_file(repo, path, f, author_name=None, author_email=None):
     file_path, file_name = os.path.split(path)
     file_name = secure_filename(file_name)
+
+    if author_name and author_email:
+        commit_message = '{} <{}>'.format(author_name, author_email)
+    else:
+        commit_message = 'Unknown User <unknown@domain.com>'
 
     f.save(
         os.path.join(repo.path, file_path, file_name)
@@ -220,6 +228,6 @@ def add_and_commit_file(repo, path, f):
 
     repo.add_file(
         file_path=os.path.join(file_path, file_name),
-        commit_author='Test User <test@user.com>',
+        commit_author=commit_message,
         commit_message='Test commit message',
     )

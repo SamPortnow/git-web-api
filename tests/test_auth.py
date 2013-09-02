@@ -161,13 +161,19 @@ class AuthTestCase(GWATestCase):
 
         resp = self.app.put(
             repo_url + 'foo.txt?key={}'.format(self.user._id),
-            data={'file': self._fake_file()}
+            data={
+                'file': self._fake_file(),
+                'full_name': 'Test User',
+                'email': 'test_user@domain.com',
+            }
         )
 
         self.assertEqual(
             resp.status_code,
             http.OK
         )
+
+
 
     def test_create_file_private_unauthorized(self):
         repo_url = json.loads(
