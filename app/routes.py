@@ -187,6 +187,11 @@ def update_file(repo_id, path=None):
 
 @web.route('/<repo_id>/<path:path>', methods=['DELETE', ])
 def delete_file(repo_id, path):
+    auth_context = get_auth_context()
+
+    if not auth_context.can_write_repo(repo_id):
+        return abort(http.UNAUTHORIZED)
+
     repo = get_repo(repo_id)
 
     path_parts = path.split('/')
@@ -197,8 +202,11 @@ def delete_file(repo_id, path):
 
     repo.delete_file(
         file_path=os.path.join(*path_parts),
-        commit_author='Test User <test@user.com>',
-        commit_message='Test commit message',
+        commit_author='{} <{}>'.format(
+            auth_context.full_name,
+            auth_context.email
+        ),
+        commit_message='Deleted {}'.format(os.path.join(*path_parts)),
     )
 
     return ''
