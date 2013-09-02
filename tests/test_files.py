@@ -198,5 +198,5 @@ class FileTests(GWATestCase):
 
         self.assertEqual(
             resp.status_code,
-            http.OK
+            http.NO_CONTENT
         )

@@ -4,7 +4,7 @@ from StringIO import StringIO
 from urlparse import urlparse, parse_qs
 
 
-from flask import abort, Blueprint, current_app, jsonify, redirect, request, send_file, send_from_directory, url_for
+from flask import abort, Blueprint, current_app, jsonify, redirect, request, send_file, send_from_directory, url_for, make_response
 from git_subprocess import Repository
 from werkzeug.utils import secure_filename
 
@@ -71,7 +71,7 @@ def delete_repo(repo_id):
     in the future.
     """
 
-    return ''
+    return abort(500)
 
 @web.route('/<repo_id>/', methods=['GET', ])
 def get_repo(repo_id):
@@ -209,7 +209,9 @@ def delete_file(repo_id, path):
         commit_message='Deleted {}'.format(os.path.join(*path_parts)),
     )
 
-    return ''
+    resp = make_response()
+    resp.status_code = http.NO_CONTENT
+    return resp
 
 
 def get_repo(id):

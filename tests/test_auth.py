@@ -450,7 +450,7 @@ class AuthTestCase(GWATestCase):
 
         self.assertEqual(
             resp.status_code,
-            http.OK
+            http.NO_CONTENT
         )
 
     def test_delete_file_private_unauthorized(self):
