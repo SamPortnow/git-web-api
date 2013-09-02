@@ -128,7 +128,6 @@ RepoMeta.set_storage(db)
 def get_auth_context():
     """ Return an instance of a descendant of AuthContext.
     """
-    # TODO: Make this work :)
     if current_app.config.get('ignore_auth', False):
         return current_app.no_auth_user
 

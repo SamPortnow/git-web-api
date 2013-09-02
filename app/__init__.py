@@ -5,7 +5,7 @@ def create_app(**kwargs):
     app = Flask(__name__)
 
     # config
-    app.config['git_root'] = '/tmp/test/'
+    app.config['git_root'] = kwargs.get('git_root', '/tmp/test/')
 
     # apply overrides passed to app factory
     for k, v in kwargs.iteritems():
