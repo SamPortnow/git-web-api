@@ -8,7 +8,7 @@ from flask import abort, Blueprint, current_app, jsonify, redirect, request, sen
 from git_subprocess import Repository
 from werkzeug.utils import secure_filename
 
-from auth import get_auth_context, RepoMeta
+from auth import get_auth_context, RepoMeta, KeyAuthContext
 
 web = Blueprint('git_storage', __name__)
 
@@ -42,9 +42,14 @@ def add_repo():
     if not auth_context.can_create_repos:
         return abort(http.UNAUTHORIZED)
 
+    # create a new auth context as the initial write key
+    writer = KeyAuthContext()
+    writer.save()
+
     meta = RepoMeta()
     meta.is_public = bool(request.form.get('is_public'))
     meta.access_admin.append(auth_context)
+    meta.access_write.append(writer)
 
     meta.save()
 
@@ -59,7 +64,8 @@ def add_repo():
     repo.init()
 
     return jsonify({
-        'url': url_for('.get_repo', repo_id=name)
+        'url': url_for('.get_repo', repo_id=name),
+        'write_key': writer._id,
     })
 
 @web.route('/<repo_id>/', methods=['DELETE', ])

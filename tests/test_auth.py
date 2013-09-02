@@ -51,6 +51,15 @@ class AuthTestCase(GWATestCase):
             http.OK
         )
 
+    def test_create_repo_write_key(self):
+        write_key = json.loads(
+            self.app.put('/?key=' + self.user._id).data
+        )['write_key']
+
+        self.assertIsNotNone(
+            write_key
+        )
+
     # Repo Listing
     ##############
 
