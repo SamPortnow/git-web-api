@@ -8,7 +8,6 @@ from flask import abort, Blueprint, current_app, jsonify, redirect, request, sen
 from git_subprocess import Repository
 from werkzeug.utils import secure_filename
 
-from . import utils
 from auth import get_auth_context, RepoMeta
 
 web = Blueprint('git_storage', __name__)
@@ -180,10 +179,6 @@ def add_file(repo_id, path=None):
     )
 
     return jsonify({'url': url_for('.get_file', repo_id=repo_id, path=path)})
-
-@web.route('/<repo_id>/<path:path>', methods=['POST', ])
-def update_file(repo_id, path=None):
-    return ''
 
 @web.route('/<repo_id>/<path:path>', methods=['DELETE', ])
 def delete_file(repo_id, path):
