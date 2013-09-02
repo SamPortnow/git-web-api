@@ -141,7 +141,7 @@ class FileTests(GWATestCase):
             http.OK,
         )
 
-    def test_get_file_by_version_success(self):
+    def test_get_file_by_version_success_content(self):
         repo_url = self._make_repo()
 
         file_url = json.loads(
