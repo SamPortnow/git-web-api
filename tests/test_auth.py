@@ -507,3 +507,34 @@ class AuthTestCase(GWATestCase):
             resp.status_code,
             http.UNAUTHORIZED
         )
+
+    def test_delete_file_success_via_post(self):
+        resp = json.loads(
+            self.app.put(
+                '/?key=' + self.user._id
+            ).data
+        )
+
+        repo_url = resp.get('url')
+        writer = resp.get('write_key')
+
+        self.app.put(
+            repo_url + 'foo.txt?key=' + writer,
+            data={
+                'file': self._fake_file()
+            }
+        )
+
+        resp = self.app.post(
+            repo_url + 'foo.txt?key=' + writer,
+            data={
+                'action': 'delete',
+                'full_name': 'Test User',
+                'email': 'test_user@domain.com',
+            },
+        )
+
+        self.assertEqual(
+            resp.status_code,
+            http.NO_CONTENT
+        )

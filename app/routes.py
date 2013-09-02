@@ -186,6 +186,13 @@ def add_file(repo_id, path=None):
 
     return jsonify({'url': url_for('.get_file', repo_id=repo_id, path=path)})
 
+@web.route('/<repo_id>/<path:path>', methods=['POST', ])
+def delete_file_post(repo_id, path=None):
+    if request.form.get('action') == 'delete':
+        return delete_file(repo_id, path)
+    else:
+        abort(http.METHOD_NOT_ALLOWED)
+
 @web.route('/<repo_id>/<path:path>', methods=['DELETE', ])
 def delete_file(repo_id, path):
     auth_context = get_auth_context()
