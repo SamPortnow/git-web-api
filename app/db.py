@@ -1,3 +1,4 @@
-from modularodm.storage.picklestorage import PickleStorage
+from modularodm.storage import PickleStorage
+# from modularodm import storage
 
 db = PickleStorage('foo')

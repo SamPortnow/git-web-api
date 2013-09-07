@@ -25,6 +25,11 @@ class GWATestCase(unittest.TestCase):
         self.user.save()
 
     def tearDown(self):
+        print 'tearing down!!'
         shutil.rmtree(self.git_root)
-        os.remove('db_foo.pkl')
+        print os.listdir('.')
+        try:
+            os.remove('db_foo.pkl')
+        except OSError:
+            print "Failed to delete pickle."
         os.mkdir(self.git_root)
